@@ -128,6 +128,14 @@ open class BaseChatViewController: UIViewController, UICollectionViewDataSource,
         super.viewWillDisappear(animated)
         self.keyboardTracker.stopTracking()
     }
+    
+    open func stopKeyboardTracking() {
+        self.keyboardTracker.stopTracking()
+    }
+    
+    open func startKeyboardTracking() {
+        self.keyboardTracker.startTracking()
+    }
 
     private func addCollectionView() {
         self.collectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: self.createCollectionViewLayout())
