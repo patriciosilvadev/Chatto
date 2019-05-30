@@ -34,6 +34,8 @@ open class ExpandableTextView: UITextView {
     private let placeholder: UITextView = UITextView()
     public weak var placeholderDelegate: ExpandableTextViewPlaceholderDelegate?
 
+    public var pasteActionInterceptor: PasteActionInterceptor?
+
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         self.commonInit()
@@ -56,7 +58,7 @@ open class ExpandableTextView: UITextView {
     }
 
     private func commonInit() {
-        NotificationCenter.default.addObserver(self, selector: #selector(ExpandableTextView.textDidChange), name: NSNotification.Name.UITextViewTextDidChange, object: self)
+        NotificationCenter.default.addObserver(self, selector: #selector(ExpandableTextView.textDidChange), name: UITextView.textDidChangeNotification, object: self)
         self.configurePlaceholder()
         self.updatePlaceholderVisibility()
     }
@@ -128,16 +130,34 @@ open class ExpandableTextView: UITextView {
         self.updatePlaceholderVisibility()
         self.scrollToCaret()
 
-        if #available(iOS 9, *) {
-            // Bugfix:
-            // 1. Open keyboard
-            // 2. Paste very long text (so it snaps to nav bar and shows scroll indicators)
-            // 3. Select all and cut
-            // 4. Paste again: Texview it's smaller than it should be
-            self.isScrollEnabled = false
-            self.isScrollEnabled = true
+        // Bugfix:
+        // 1. Open keyboard
+        // 2. Paste very long text (so it snaps to nav bar and shows scroll indicators)
+        // 3. Select all and cut
+        // 4. Paste again: Texview it's smaller than it should be
+        self.isScrollEnabled = false
+        self.isScrollEnabled = true
+    }
+
+    // MARK: - UIResponder
+
+    open override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
+        guard action == #selector(paste(_:)),
+              let interceptor = self.pasteActionInterceptor,
+              interceptor.canPerformPaste(withSender: sender) else {
+            return super.canPerformAction(action, withSender: sender)
+        }
+        return true
+    }
+
+    open override func paste(_ sender: Any?) {
+        let handeledByInterceptor = self.pasteActionInterceptor?.performPaste() == true
+        if !handeledByInterceptor && super.canPerformAction(#selector(paste(_:)), withSender: sender) {
+            super.paste(sender)
         }
     }
+
+    // MARK: - Private methods
 
     private func scrollToCaret() {
         if let textRange = self.selectedTextRange {
