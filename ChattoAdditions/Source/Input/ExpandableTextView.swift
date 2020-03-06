@@ -135,8 +135,8 @@ open class ExpandableTextView: UITextView {
         // 2. Paste very long text (so it snaps to nav bar and shows scroll indicators)
         // 3. Select all and cut
         // 4. Paste again: Texview it's smaller than it should be
-        self.isScrollEnabled = false
-        self.isScrollEnabled = true
+        // self.isScrollEnabled = false
+        // self.isScrollEnabled = true
     }
 
     // MARK: - UIResponder
